@@ -5,7 +5,7 @@ BUILD_CMD="./gradlew --console=plain --no-daemon clean assemble"
 
 if [ "${GIT_TAG}" ]
 then
-  RELEASE_VERSION=${GIT_TAG}-onecloud
+  RELEASE_VERSION=${GIT_TAG}
 	echo "Detected tagged build version ${GIT_TAG}. Setting version to ${RELEASE_VERSION}"
 	BUILD_CMD+=" -Dorg.gradle.project.version=${RELEASE_VERSION}"
 else
