@@ -1,0 +1,68 @@
+name: flip-tables CI
+
+on:
+  pull_request:
+    branches: [ '*' ]
+  push:
+    branches: [ 'master' ]
+    tags: [ '*' ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  gradle-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '8'
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Build Release Version
+        if: ${{ github.ref_type == 'tag' }}
+        run: ./gradlew clean assemble --info -Dorg.gradle.project.version=${{ github.ref_name }}
+
+      - name: Build Non-Release Version
+        if: ${{ github.ref_type != 'tag' }}
+        run: ./gradlew clean assemble --info
+
+      - name: Bundle/TAR up JAR files
+        run: |
+          tar -cvzf ./build/libs/java.tar.gz ./build/libs/*.jar
+          ls -ls ./build/libs
+
+      - name: Publish Artifacts
+        uses: Workiva/gha-store-artifacts@v2.0.1
+        with:
+          JAVA: ./build/libs/connector-sdk-java-*.*.jar
+          VERACODE: ./build/libs/java.tar.gz
+
+      # this step is for publishing versions suffixed with '-SNAPSHOT' (if present) to the maven dev repo
+      # PR branches will publish them at a URL like the following:
+      # https://workivaeast.jfrog.io/ui/native/maven-dev/com/workiva/chains/connector-sdk-java/*-SNAPSHOT/
+      # its useful if you want to consume a published WIP sdk jar in a connector locally for testing
+      # if the connector is configured to check the wk maven-dev repository for dependencies
+      # then all you need to do is update the connector sdk version to x.x.x-SNAPSHOT and it will find it
+      - name: Conditionally Publish Java SNAPSHOT
+        if: ${{ github.ref_type != 'tag' && github.ref_name != 'master' && hashFiles('./build/libs/*-SNAPSHOT.jar') != '' }}
+        uses: Workiva/gha-deploy-component@v2.0.1
+        with:
+          JAVA-SNAPSHOT: ./build/libs/*-SNAPSHOT.jar
+
+  Unit-Test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Workiva/gha-setup-credentials@v2.0.2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '8'
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Tests
+        run: ./gradlew --no-daemon --console=plain test
