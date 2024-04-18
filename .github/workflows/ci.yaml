@@ -38,14 +38,14 @@ jobs:
       - name: Publish Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: java
+          name: flip-tables
           path: ./build/libs/flip-tables-*.*.jar
 
       - name: Publish Snapshot
         if: ${{ github.ref_type != 'tag' && github.ref_name != 'master' && hashFiles('./build/libs/*-SNAPSHOT.jar') != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: java-snapshot
+          name: flip-tables-snapshot
           path: ./build/libs/*-SNAPSHOT.jar
 
   Unit-Test:
