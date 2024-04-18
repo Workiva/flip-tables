@@ -36,14 +36,14 @@ jobs:
           ls -ls ./build/libs
 
       - name: Publish Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: java
           path: ./build/libs/connector-sdk-java-*.*.jar
 
       - name: Publish Snapshot
         if: ${{ github.ref_type != 'tag' && github.ref_name != 'master' && hashFiles('./build/libs/*-SNAPSHOT.jar') != '' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: java-snapshot
           path: ./build/libs/*-SNAPSHOT.jar
