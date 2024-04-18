@@ -39,7 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java
-          path: ./build/libs/connector-sdk-java-*.*.jar
+          path: ./build/libs/flip-tables-*.*.jar
 
       - name: Publish Snapshot
         if: ${{ github.ref_type != 'tag' && github.ref_name != 'master' && hashFiles('./build/libs/*-SNAPSHOT.jar') != '' }}
